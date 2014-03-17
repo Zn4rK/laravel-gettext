@@ -21,7 +21,7 @@ class Gettext {
      * @var array
      */
 	protected $encoding = null;
-
+	
     /**
      * The target env. variable.
      *
