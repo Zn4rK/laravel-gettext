@@ -145,8 +145,8 @@ return array(
 		|--------------------------------------------------------------------------
 		| Comments
 		|--------------------------------------------------------------------------
-		| Determines which docbloc comment are included as a remarks for translators
-		| the default is [TRANSLATORS]
+		| Determines which docbloc comment are included as a remarks for translators      
+        | the default is [TRANSLATORS]
 		| 
 		*/
         
@@ -192,7 +192,7 @@ return array(
 		| The author of the POT-file.
 		|
 		*/
-        
+
         'author' => 'Your Name',
 
         /*
@@ -206,42 +206,42 @@ return array(
         'package_name' => 'Your project',
 
         /*
-		|--------------------------------------------------------------------------
-		| Package version
-		|--------------------------------------------------------------------------
-		| The package version that will be included in the POT-file. 
-		|
-		*/
+        |--------------------------------------------------------------------------
+        | Package version
+        |--------------------------------------------------------------------------
+        | The package version that will be included in the POT-file. 
+        |
+        */
 		
         'package_version' => 'v1.0.0',
 
         /*
-		|--------------------------------------------------------------------------
-		| Email
-		|--------------------------------------------------------------------------
-		| The email address that will be included in the POT-file
-		|
-		*/
-
+        |--------------------------------------------------------------------------
+        | Email
+        |--------------------------------------------------------------------------
+        | The email address that will be included in the POT-file
+        |
+        */
+        
         'email' => 'you@yourdomain.tld',
 
         /*
-		|--------------------------------------------------------------------------
-		| Keywords
-		|--------------------------------------------------------------------------
-		| Keywords that xgettext looks for. You can add your own if it's a valid 
-		| PHP-function. 
-		|
-		*/
+        |--------------------------------------------------------------------------
+        | Keywords
+        |--------------------------------------------------------------------------
+        | Keywords that xgettext looks for. You can add your own if it's a valid 
+        | PHP-function. 
+        |
+        */
         'keywords' => array(
-            '_', 				// shorthand for gettext
-            'gettext', 			// the default php gettext function
-            'dgettext:2', 		// accepts plurals, uses the second argument passed to dgettext as a translation string
-            'dcgettext:2', 		// accepts plurals, uses the second argument passed to dcgettext as a translation string
-            'ngettext:1,2', 	// accepts plurals, uses the first and second argument passed to ngettext as a translation string
-            'dngettext:2,3', 	// accepts plurals, used the second and third argument passed to dngettext as a translation string
-            'dcngettext:2,3', 	// accepts plurals, used the second and third argument passed to dcngettext as a translation string
-            '_n:1,2', 			// a custom l4gettext shorthand for ngettext (supports plurals)
+            '_',                // shorthand for gettext
+            'gettext',          // the default php gettext function
+            'dgettext:2',       // accepts plurals, uses the second argument passed to dgettext as a translation string
+            'dcgettext:2',      // accepts plurals, uses the second argument passed to dcgettext as a translation string
+            'ngettext:1,2',     // accepts plurals, uses the first and second argument passed to ngettext as a translation string
+            'dngettext:2,3',    // accepts plurals, used the second and third argument passed to dngettext as a translation string
+            'dcngettext:2,3',   // accepts plurals, used the second and third argument passed to dcngettext as a translation string
+            '_n:1,2',           // a custom l4gettext shorthand for ngettext (supports plurals)
         ),
 	),
 
