@@ -13,14 +13,14 @@ class Gettext {
      *
      * @var string
      */
-	protected $locale = null;
+    protected $locale = null;
 
     /**
      * The current encoding
      *
      * @var array
      */
-	protected $encoding = null;
+    protected $encoding = null;
 	
     /**
      * The target env. variable.
@@ -34,8 +34,8 @@ class Gettext {
      *
      * @return void
      */
-	public function __construct()
-	{
+    public function __construct()
+    {
         // Todo:
             // Write tests
 
@@ -46,16 +46,16 @@ class Gettext {
 
         $locale     = reset($locales);
         $encoding   = Config::get('gettext::config.encoding');
-		$textdomain = Config::get('gettext::config.textdomain');
-		$path       = Config::get('gettext::config.path');
-
+        $textdomain = Config::get('gettext::config.textdomain');
+        $path       = Config::get('gettext::config.path');
+		
         $this->setTextdomain($textdomain, $path)
              ->setEncoding($encoding);
 
         if(Config::get('gettext::config.setlocale')) {
             $this->setLocale($locale);           
         }
-	}
+    }
 
     /**
      * Method to set the textdomain
@@ -105,7 +105,7 @@ class Gettext {
      * @return \Paxx\Gettext\Gettext
      * @throws \Paxx\Gettext\Exceptions\SetLocaleException;
      */
-	public function setLocale($locale='') 
+    public function setLocale($locale='') 
     {
         if(!putenv("LANGUAGE=" . $locale) == false) {
             Log::warning(sprintf('Could not set the ENV varibale LANGUAGE = %s', $locale));
@@ -128,6 +128,6 @@ class Gettext {
         }
 
         return $this;
-	}
+    }
 
 }
