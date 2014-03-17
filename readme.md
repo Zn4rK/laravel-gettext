@@ -26,6 +26,12 @@ Gettext::setLocale('sv_SE');
 
 Just make sure that you have the locales installed on your system.
 
+After everything is set, you can run
+```php
+php artisan gettext
+```
+And your translations will be extracted from the views and added to the POT-file.
+
 Dependencies
 ----
 - gettext
