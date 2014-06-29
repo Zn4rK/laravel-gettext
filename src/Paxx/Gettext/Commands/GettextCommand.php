@@ -70,13 +70,33 @@ class GettextCommand extends Command {
         });
 
         // Merge the view files with the compiled views
-        $views = array_merge($views, File::allFiles($cache_folder));
+        $files = array_merge($views, File::allFiles($cache_folder));
+
+        // Go through the additional files
+        $additional_paths = $this->option('additional');
+
+        // Convert to array if string
+        if(!is_array($additional_paths)) {
+            $additional_paths = explode(',', $additional_paths);
+        }
+
+        if(!empty($additional_files)) {
+
+            $additional_files = array();
+
+            foreach($additional_paths as $path) {
+                $additional_files = array_merge($additional_files, File::allFiles(app_path() . DIRECTORY_SEPARATOR . $path));
+            }
+
+            // Merge the additional files with the view files
+            $files = array_merge($files, $additional_files);
+        }
 
         // Count the array to make sure we actually have something to do
-        $count = count($views);
+        $count = count($files);
 
         if($count < 1) {
-            throw new NoViewsFoundException("No views files found in $views_folder and $cache_folder");
+            throw new NoViewsFoundException("No files found in $views_folder and $cache_folder [and in the additonal folder(s)]");
         }
 
         // Show some info
@@ -140,7 +160,7 @@ class GettextCommand extends Command {
             $xgettext[] = '--keyword=$k';
 
         // Merge the view-files with the xgettext-arguments array
-        $xgettext = array_merge($xgettext, array_map(function($view) { return $view->getPathname(); }, $views));
+        $xgettext = array_merge($xgettext, array_map(function($file) { return $file->getPathname(); }, $files));
 
         // Use the Symfony\Component\Process\ProcessBuilder and set the arguments
         $this->procBuilder->setArguments($xgettext);
@@ -298,6 +318,7 @@ class GettextCommand extends Command {
 
         $defaults = array(
             'cache'           => $config['cache'],
+            'additional'      => $config['additional_paths'],
             'cleanup'         => $config['cleanup'],
             'msgmerge'        => $config['msgmerge']['enabled'],
             'binary'          => $config['xgettext']['binary'],
@@ -321,6 +342,8 @@ class GettextCommand extends Command {
             array('force_po',        'f',  InputOption::VALUE_REQUIRED, 'Force the creation of a .pot regardless of any translation strings found (bool)', $defaults['force_po']),
             array('no_location',     'nl', InputOption::VALUE_REQUIRED, 'Do not leave a location trail in the POT-file', $defaults['no_location']),
             array('cache',           'ca', InputOption::VALUE_REQUIRED, 'The folder in which the compiled blade views will end up', $defaults['cache']),
+            array('additional',      'ad', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'If any additional files, this should be specified here', $defaults['additional']),
+            array('binary',          'b',  InputOption::VALUE_REQUIRED, 'The name of the xgettext binary', $defaults['binary']),
             array('cleanup',         'cu', InputOption::VALUE_REQUIRED, 'Cleanup the view cache-folder', $defaults['cleanup']),
             array('msgmerge',        'mm', InputOption::VALUE_REQUIRED, 'Check if we should do the msgmerge', $defaults['msgmerge']),
             array('from_code',       'e',  InputOption::VALUE_REQUIRED, 'The encoding of the .pot-files', $defaults['from_code']),
