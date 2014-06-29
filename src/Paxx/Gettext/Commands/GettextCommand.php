@@ -80,7 +80,7 @@ class GettextCommand extends Command {
             $additional_paths = explode(',', $additional_paths);
         }
 
-        if(!empty($additional_files)) {
+        if(!empty($additional_paths)) {
 
             $additional_files = array();
 
