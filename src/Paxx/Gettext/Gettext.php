@@ -36,6 +36,8 @@ class Gettext {
      */
     public function __construct()
     {
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') return $this;
+
         // Todo:
             // Write tests
 
@@ -107,6 +109,8 @@ class Gettext {
      */
     public function setLocale($locale='') 
     {
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') return $this;
+
         if(!putenv("LANGUAGE=" . $locale) == false) {
             Log::warning(sprintf('Could not set the ENV varibale LANGUAGE = %s', $locale));
         }
