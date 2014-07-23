@@ -27,7 +27,7 @@ class Gettext {
      *
      * @var constant
      */
-    protected $target = LC_ALL;
+    protected $target = null;
 
     /**
      * Constructor
@@ -50,13 +50,27 @@ class Gettext {
         $encoding   = Config::get('gettext::config.encoding');
         $textdomain = Config::get('gettext::config.textdomain');
         $path       = Config::get('gettext::config.path');
-		
-        $this->setTextdomain($textdomain, $path)
+		$target     = Config::get('gettext::config.target');
+
+        $this->setTarget($target)
+             ->setTextdomain($textdomain, $path)
              ->setEncoding($encoding);
 
         if(Config::get('gettext::config.setlocale')) {
             $this->setLocale($locale);           
         }
+    }
+
+    /**
+     * Method to set the target
+     *
+     * @param constant $target
+     * @return \Paxx\Gettext\Gettext
+     */
+    public function setTarget($target)
+    {
+        $this->target = $target;
+        return $this;
     }
 
     /**
