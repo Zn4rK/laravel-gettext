@@ -145,6 +145,11 @@ class Gettext {
             throw new SetLocaleException('The locale(s) [' . implode($locales, ',') . '] could not be set');
         }
 
+        // Reset the numeric
+        if(Config::get('gettext::config.reset_numeric')) {
+            setlocale(LC_NUMERIC, 'C');
+        }
+
         return $this;
     }
 
