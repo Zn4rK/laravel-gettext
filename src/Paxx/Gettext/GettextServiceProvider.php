@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\AliasLoader;
 
 class GettextServiceProvider extends ServiceProvider {
-
+    /** @var Gettext */
 	protected $instance = null;
 
 	/**
@@ -26,6 +26,27 @@ class GettextServiceProvider extends ServiceProvider {
 		$this->package('paxx/gettext');
 	
 		$this->instance = new Gettext();
+
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            return;
+        }
+
+        $encoding   = Config::get('gettext::config.encoding');
+        $textDomain = Config::get('gettext::config.textdomain');
+        $path       = Config::get('gettext::config.path');
+        $target     = Config::get('gettext::config.target');
+
+        $this->instance->setTarget($target);
+        $this->instance->setTextdomain($textDomain, $path);
+        $this->instance->setEncoding($encoding);
+        $this->instance->setLocale($this->app->getLocale());
+
+        // Listen for locale changes and propagate them to gettext.
+        /** @var \Illuminate\Events\Dispatcher $events */
+        $events = $this->app->make('events');
+        $events->listen('locale.changed', function($locale) {
+            $this->instance->setLocale($locale);
+        });
 	}
 
 	/**

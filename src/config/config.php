@@ -89,19 +89,6 @@ return array(
 
 	'encoding' => array('utf8', 'UTF8', 'utf-8', 'UTF-8'),
 
-	/*
-	|--------------------------------------------------------------------------
-	| Set locale
-	|--------------------------------------------------------------------------
-	| 
-	| On some systems the default locale is already set and does not
-	| need to be set again. This is probably just a personal preference.
-	|
-	| This enables the locale to be set in the constructor.
-	| 
-	*/
-
-	'setlocale' => false,
 
 	/*
 	|--------------------------------------------------------------------------

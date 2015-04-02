@@ -31,34 +31,9 @@ class Gettext {
 
     /**
      * Constructor
-     *
-     * @return void
      */
     public function __construct()
     {
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') return $this;
-
-        // Todo:
-            // Write tests
-
-        $locales    = Config::get('gettext::config.locales');
-
-        // Just make sure that the locales is actually an array
-        $locales    = !is_array($locales) ? array($locales) : $locales;
-
-        $locale     = reset($locales);
-        $encoding   = Config::get('gettext::config.encoding');
-        $textdomain = Config::get('gettext::config.textdomain');
-        $path       = Config::get('gettext::config.path');
-		$target     = Config::get('gettext::config.target');
-
-        $this->setTarget($target)
-             ->setTextdomain($textdomain, $path)
-             ->setEncoding($encoding);
-
-        if(Config::get('gettext::config.setlocale')) {
-            $this->setLocale($locale);           
-        }
     }
 
     /**
@@ -125,12 +100,12 @@ class Gettext {
     {
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') return $this;
 
-        if(!putenv("LANGUAGE=" . $locale) == false) {
-            Log::warning(sprintf('Could not set the ENV varibale LANGUAGE = %s', $locale));
+        if(!putenv("LANGUAGE=" . $locale)) {
+            Log::warning(sprintf('Could not set the ENV variable LANGUAGE = %s', $locale));
         }
 
-        if(!putenv("LANG=" . $locale) == false) {
-            Log::warning(sprintf('Could not set the ENV varibale LANG = %s', $locale));
+        if(!putenv("LANG=" . $locale)) {
+            Log::warning(sprintf('Could not set the ENV variable LANG = %s', $locale));
         }
 
         // Merge the locale with the encoding
