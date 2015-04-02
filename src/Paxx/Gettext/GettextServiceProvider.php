@@ -2,6 +2,7 @@
 
 namespace Paxx\Gettext;
 
+use Illuminate\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\AliasLoader;
 
@@ -31,10 +32,12 @@ class GettextServiceProvider extends ServiceProvider {
             return;
         }
 
-        $encoding   = Config::get('gettext::config.encoding');
-        $textDomain = Config::get('gettext::config.textdomain');
-        $path       = Config::get('gettext::config.path');
-        $target     = Config::get('gettext::config.target');
+        /** @var \Illuminate\Config\Repository $config */
+        $config = $this->app->make('config');
+        $encoding   = $config->get('gettext::config.encoding');
+        $textDomain = $config->get('gettext::config.textdomain');
+        $path       = $config->get('gettext::config.path');
+        $target     = $config->get('gettext::config.target');
 
         $this->instance->setTarget($target);
         $this->instance->setTextdomain($textDomain, $path);
