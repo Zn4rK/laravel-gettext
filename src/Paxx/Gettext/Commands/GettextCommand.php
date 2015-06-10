@@ -123,6 +123,9 @@ class GettextCommand extends Command {
         // Since the language always will be PHP, we can 
         $xgettext[] = '--language=PHP';
 
+        // Deterministic output!
+        $xgettext[] = '--sort-output';
+
         // Place comment block with TAG (or those preceding keyword lines) in output file
         if($this->option('comments'))
             $xgettext[] = '--add-comments=' . $this->option('comments');
@@ -173,6 +176,8 @@ class GettextCommand extends Command {
         if(!$process->isSuccessful()) {
             throw new XgettextException($process->getExitCode() . $process->getExitCodeText() . PHP_EOL . $process->getCommandLine());
         }
+
+        $this->rebaseLocations($output_file);
 
         // Show the user som info:
         $this->info("\tPOT file located in: $output_file\n");
@@ -227,18 +232,16 @@ class GettextCommand extends Command {
     }
 
     /**
-     * Method to merge new translation files with new translation files
+     * Method to merge new template file with existing translation files
      *
-     * @param string $output_file
+     * @param string $templateFile
      * @return void
      */
-    private function merge($output_file) {
+    private function merge($templateFile) {
         // Get the config for msgmerge:
         $config = Config::get('gettext::config.msgmerge');
 
         $this->comment("\n\tTrying to combine existing translations with new translations...\n");
-
-        $temp_file = 'temp.pot';
 
         // Get the path to locales
         $path = app_path() . DIRECTORY_SEPARATOR . Config::get('gettext::config.path') . DIRECTORY_SEPARATOR;
@@ -259,30 +262,32 @@ class GettextCommand extends Command {
         // Go through the locales and create the folders if they do not exists
         if(!empty($locales)) {
             foreach($locales as $locale) {
-                $locale_dir      = $path . $locale . DIRECTORY_SEPARATOR . 'LC_MESSAGES' . DIRECTORY_SEPARATOR;
-                $textdomain_file = $locale_dir . Config::get('gettext::config.textdomain') . '.pot';
+                $locale_dir = $path . $locale . DIRECTORY_SEPARATOR . 'LC_MESSAGES' . DIRECTORY_SEPARATOR;
+                $resultFile = $locale_dir . Config::get('gettext::config.textdomain') . '.po';
+                $tempFile = $locale_dir . 'temp.po';
 
                 // Create the locale directory if it does not exist
                 if(!File::isDirectory($locale_dir))
                     File::makeDirectory($locale_dir, 0775, true);
 
                 // Check if we have the original POT-file:
-                if(!File::exists($textdomain_file)) {
+                if(!File::exists($resultFile)) {
                     // No translation could be found, so we just copy the output into the folder
-                    File::copy($output_file, $textdomain_file);
+                    File::copy($templateFile, $resultFile);
 
                     // And since there is no need to merge the files together we can just continue the loop.
                     continue;
                 }
 
                 // If the file can be found, we need to create a temporary file:
-                File::copy($output_file, $locale_dir . $temp_file);
+                File::copy($templateFile, $tempFile);
 
                 // msgmerge arguments
                 $args = array(
-                    $locale_dir . 'messages.pot', // Find the messages.pot
-                    $locale_dir . 'temp.pot', // Merge it with the new file
-                    '--output-file=' . $textdomain_file // And output it to the original
+                    $templateFile, // Template file
+                    $tempFile, // Previous translation file
+                    '--output-file=' . $resultFile, // And output it to the original
+                    '--sort-output', // Deterministic output
                 );
 
                 // Use the symfony process-builder and execute msgmerge
@@ -293,11 +298,13 @@ class GettextCommand extends Command {
                 $process->run();
             
                 if($process->isSuccessful()) {
-                    // Show the user som information
-                    $this->info("\tMerged POT-files in $locale_dir");
+                    $this->rebaseLocations($resultFile);
+
+                    // Show the user some information
+                    $this->info("\tMerged template with existing translations into $resultFile");
 
                     // Remove the temporary language-file
-                    File::delete($locale_dir . $temp_file);
+                    File::delete($tempFile);
                 } else {
                     throw new MsgmergeException($process->getExitCode() . $process->getExitCodeText() . PHP_EOL . $process->getCommandLine());
                 }
@@ -305,6 +312,23 @@ class GettextCommand extends Command {
         }
 
     }
+
+    /**
+     * Changes all paths present in the comments to be based on the application path, not the real filesystem.
+     * This ensures that regenerated files are identical even when executed on another machine with a different
+     * path to the source files.
+     *
+     * @param string $filename
+     */
+    public function rebaseLocations($filename) {
+        $content = file_get_contents($filename);
+
+        $pattern = '/^#: ' . preg_quote(app_path('..'), '/') . '/m';
+        $content = preg_replace($pattern, '#: ', $content);
+
+        file_put_contents($filename, $content);
+    }
+
 
     /**
      * Get the console command options.
