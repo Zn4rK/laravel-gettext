@@ -241,7 +241,7 @@ class GettextCommand extends Command {
         // Get the config for msgmerge:
         $config = Config::get('gettext::config.msgmerge');
 
-        $this->comment("\n\tTrying to combine existing translations with new translations...\n");
+        $this->comment("\n\tTrying to combine template with existing translations...\n");
 
         // Get the path to locales
         $path = app_path() . DIRECTORY_SEPARATOR . Config::get('gettext::config.path') . DIRECTORY_SEPARATOR;
@@ -323,7 +323,13 @@ class GettextCommand extends Command {
     public function rebaseLocations($filename) {
         $content = file_get_contents($filename);
 
-        $pattern = '/^#: ' . preg_quote(app_path('..'), '/') . '/m';
+        $path = app_path();
+
+        // Move from code-dir/app to code-dir
+        // app_path('..') doesn't work, it returns code-dir/app/..
+        $path = substr($path, 0, strrpos($path, '/') + 1);
+
+        $pattern = '/^#: ' . preg_quote($path, '/') . '/m';
         $content = preg_replace($pattern, '#: ', $content);
 
         file_put_contents($filename, $content);
