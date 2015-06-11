@@ -280,12 +280,12 @@ class GettextCommand extends Command {
                 }
 
                 // If the file can be found, we need to create a temporary file:
-                File::copy($templateFile, $tempFile);
+                File::copy($resultFile, $tempFile);
 
                 // msgmerge arguments
                 $args = array(
-                    $templateFile, // Template file
                     $tempFile, // Previous translation file
+                    $templateFile, // Template file
                     '--output-file=' . $resultFile, // And output it to the original
                     '--sort-output', // Deterministic output
                 );
