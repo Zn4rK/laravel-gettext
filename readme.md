@@ -17,7 +17,7 @@ After your changes to the config, you can go ahead and add the service provider 
 'Paxx\Gettext\GettextServiceProvider'
 ```
 
-You might need to make sure that php can write to app/lang since that is the folder where the POT-files will be placed in. 
+You might need to make sure that php can write to resources/lang since that is the folder where the POT-files will be placed in. 
 
 To change locale you can then use:
 ```php

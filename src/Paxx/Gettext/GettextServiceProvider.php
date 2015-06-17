@@ -24,8 +24,6 @@ class GettextServiceProvider extends ServiceProvider {
 	 */
 	public function boot()
 	{	
-		$this->package('paxx/gettext');
-	
 		$this->instance = new Gettext();
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -34,10 +32,10 @@ class GettextServiceProvider extends ServiceProvider {
 
         /** @var \Illuminate\Config\Repository $config */
         $config = $this->app->make('config');
-        $encoding   = $config->get('gettext::config.encoding');
-        $textDomain = $config->get('gettext::config.textdomain');
-        $path       = $config->get('gettext::config.path');
-        $target     = $config->get('gettext::config.target');
+        $encoding   = $config->get('gettext.encoding');
+        $textDomain = $config->get('gettext.textdomain');
+        $path       = $config->get('gettext.path');
+        $target     = $config->get('gettext.target');
 
         $this->instance->setTarget($target);
         $this->instance->setTextdomain($textDomain, $path);
@@ -59,7 +57,11 @@ class GettextServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
-        $this->app['gettext'] = $this->app->share(function($app) {
+		config(array(
+			'config/config.php'
+		));
+
+		$this->app['gettext'] = $this->app->share(function($app) {
         	return $this->instance;
         });
 

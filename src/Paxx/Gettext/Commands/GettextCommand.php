@@ -56,8 +56,8 @@ class GettextCommand extends Command {
      */
     public function fire ()
     {
-        $views_folder = app_path() . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
-        $cache_folder = app_path() . DIRECTORY_SEPARATOR . $this->option('cache') . DIRECTORY_SEPARATOR;
+        $views_folder = base_path('resources/views') . DIRECTORY_SEPARATOR;
+        $cache_folder = base_path($this->option('cache')) . DIRECTORY_SEPARATOR;
         
         $views = File::allFiles($views_folder);
 
@@ -85,7 +85,7 @@ class GettextCommand extends Command {
             $additional_files = array();
 
             foreach($additional_paths as $path) {
-                $additional_files = array_merge($additional_files, File::allFiles(app_path() . DIRECTORY_SEPARATOR . $path));
+                $additional_files = array_merge($additional_files, File::allFiles(base_path($path)));
             }
 
             // Merge the additional files with the view files
@@ -117,7 +117,7 @@ class GettextCommand extends Command {
         $xgettext[] = (($this->option('binary_path') == '') ? '' : $this->option('binary_path') . DIRECTORY_SEPARATOR) . $this->option('binary');
         
         // Store the output-file
-        $output_file = app_path() . DIRECTORY_SEPARATOR . Config::get('gettext::config.path') . DIRECTORY_SEPARATOR . Config::get('gettext::config.textdomain') . '.pot';
+        $output_file = base_path(Config::get('gettext.path')) . DIRECTORY_SEPARATOR . Config::get('gettext.textdomain') . '.pot';
         $xgettext[] = '--output=' . $output_file;
 
         // Since the language always will be PHP, we can 
@@ -199,7 +199,7 @@ class GettextCommand extends Command {
      */
     private function cleanup() {
         // Cache path
-        $cache = app_path() . DIRECTORY_SEPARATOR . $this->option('cache') . DIRECTORY_SEPARATOR;
+        $cache = base_path($this->option('cache')) . DIRECTORY_SEPARATOR;
 
         // Get all files
         $views = File::allFiles($cache);
@@ -239,15 +239,15 @@ class GettextCommand extends Command {
      */
     private function merge($templateFile) {
         // Get the config for msgmerge:
-        $config = Config::get('gettext::config.msgmerge');
+        $config = Config::get('gettext.msgmerge');
 
         $this->comment("\n\tTrying to combine template with existing translations...\n");
 
         // Get the path to locales
-        $path = app_path() . DIRECTORY_SEPARATOR . Config::get('gettext::config.path') . DIRECTORY_SEPARATOR;
+        $path = base_path(Config::get('gettext.path')) . DIRECTORY_SEPARATOR;
 
         // Get the locales
-        $locales = Config::get('gettext::config.locales');
+        $locales = Config::get('gettext.locales');
         $locales = !is_array($locales) ? array($locales) : $locales;
 
         // Shift the array down, so we don't create the first folder
@@ -263,7 +263,7 @@ class GettextCommand extends Command {
         if(!empty($locales)) {
             foreach($locales as $locale) {
                 $locale_dir = $path . $locale . DIRECTORY_SEPARATOR . 'LC_MESSAGES' . DIRECTORY_SEPARATOR;
-                $resultFile = $locale_dir . Config::get('gettext::config.textdomain') . '.po';
+                $resultFile = $locale_dir . Config::get('gettext.textdomain') . '.po';
                 $tempFile = $locale_dir . 'temp.po';
 
                 // Create the locale directory if it does not exist
@@ -323,12 +323,7 @@ class GettextCommand extends Command {
     public function rebaseLocations($filename) {
         $content = file_get_contents($filename);
 
-        $path = app_path();
-
-        // Move from code-dir/app to code-dir
-        // app_path('..') doesn't work, it returns code-dir/app/..
-        $path = substr($path, 0, strrpos($path, '/') + 1);
-
+        $path = base_path() . DIRECTORY_SEPARATOR;
         $pattern = '/^#: ' . preg_quote($path, '/') . '/m';
         $content = preg_replace($pattern, '#: ', $content);
 
@@ -344,7 +339,7 @@ class GettextCommand extends Command {
     protected function getOptions ()
     {
         // Fetch the config
-        $config = Config::get('gettext::config');
+        $config = Config::get('gettext');
 
         $defaults = array(
             'cache'           => $config['cache'],

@@ -58,9 +58,9 @@ class Gettext {
     public function setTextdomain($textdomain, $path)
     {
         // full path to localization messages
-        $full_path = base_path('resources') . DIRECTORY_SEPARATOR . $path;
+        $full_path = base_path($path);
 
-        // sanity check - path must exist relative to app/ folder
+        // sanity check - path must exist relative to resources/ folder
         if (!File::isDirectory($full_path)) File::makeDirectory($full_path);
 
         // bind text domain
@@ -121,7 +121,7 @@ class Gettext {
         }
 
         // Reset the numeric
-        if(Config::get('gettext::config.reset_numeric')) {
+        if(Config::get('gettext.reset_numeric')) {
             setlocale(LC_NUMERIC, 'C');
         }
 

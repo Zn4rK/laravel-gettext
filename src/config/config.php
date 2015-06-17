@@ -64,8 +64,8 @@ return array(
 	| Path
 	|--------------------------------------------------------------------------
 	|
-	| The locale path is relative to the resources/-path for your laravel project
-	| You are better of not changing this, but you can ofcourse do it.
+	| The locale path for your laravel project
+	| You are better of not changing this, but you can of course do it.
 	|
 	| Don't include a trailing slash
 	| 
@@ -73,7 +73,7 @@ return array(
 	|
 	*/
 
-	'path' => 'lang',
+	'path' => 'resources/lang',
 
 	/*
 	|--------------------------------------------------------------------------
@@ -111,7 +111,6 @@ return array(
 	|--------------------------------------------------------------------------
 	| 
 	| This is the path where the compiled blade view files will end up.
-	| relative to app/
 	|
 	| Don't include a trailing slash.
 	|
