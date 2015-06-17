@@ -177,7 +177,7 @@ class GettextCommand extends Command {
             throw new XgettextException($process->getExitCode() . $process->getExitCodeText() . PHP_EOL . $process->getCommandLine());
         }
 
-        $this->rebaseLocations($output_file);
+        $this->rebaseLocationsInComments($output_file);
 
         // Show the user som info:
         $this->info("\tPOT file located in: $output_file\n");
@@ -227,7 +227,13 @@ class GettextCommand extends Command {
         });
 
         foreach($views as $view) {
-            $blade->compile($view->getPathname());
+            $viewPath = $view->getPathname();
+
+            // The blade compiler names files based on $path.
+            // We need to rebase these to ensure that they are reproducable.
+            $viewPath = $this->rebaseLocation($viewPath);
+
+            $blade->compile($viewPath);
         }
     }
 
@@ -298,7 +304,7 @@ class GettextCommand extends Command {
                 $process->run();
             
                 if($process->isSuccessful()) {
-                    $this->rebaseLocations($resultFile);
+                    $this->rebaseLocationsInComments($resultFile);
 
                     // Show the user some information
                     $this->info("\tMerged template with existing translations into $resultFile");
@@ -320,7 +326,7 @@ class GettextCommand extends Command {
      *
      * @param string $filename
      */
-    public function rebaseLocations($filename) {
+    public function rebaseLocationsInComments($filename) {
         $content = file_get_contents($filename);
 
         $path = base_path() . DIRECTORY_SEPARATOR;
@@ -330,6 +336,15 @@ class GettextCommand extends Command {
         file_put_contents($filename, $content);
     }
 
+    /**
+     * @param string $content
+     * @return string
+     */
+    public function rebaseLocation($content) {
+        $path = base_path() . DIRECTORY_SEPARATOR;
+        $pattern = '/^' . preg_quote($path, '/') . '/';
+        return preg_replace($pattern, '', $content);
+    }
 
     /**
      * Get the console command options.
