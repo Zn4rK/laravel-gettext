@@ -64,12 +64,12 @@ return array(
 	| Path
 	|--------------------------------------------------------------------------
 	|
-	| The locale path is relative to the app/-path for your laravel project
+	| The locale path is relative to the resources/-path for your laravel project
 	| You are better of not changing this, but you can ofcourse do it.
 	|
 	| Don't include a trailing slash
 	| 
-	| The default is app/lang which ships with laravel by design
+	| The default is resource/lang which ships with laravel 5 by design
 	|
 	*/
 

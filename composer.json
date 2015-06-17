@@ -2,7 +2,7 @@
     "name": "paxx/gettext",
     "description": "Simple Gettext wrapper for Laravel. Based on netson/l4gettext.",
     "license": "MIT",
-    "keywords": ["laravel", "gettext", "laravel4"],
+    "keywords": ["laravel", "gettext", "laravel5"],
     "version": "1.0",
     "authors": [
         {

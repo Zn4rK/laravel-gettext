@@ -58,7 +58,7 @@ class Gettext {
     public function setTextdomain($textdomain, $path)
     {
         // full path to localization messages
-        $full_path = app_path() . DIRECTORY_SEPARATOR . $path;
+        $full_path = base_path('resources') . DIRECTORY_SEPARATOR . $path;
 
         // sanity check - path must exist relative to app/ folder
         if (!File::isDirectory($full_path)) File::makeDirectory($full_path);
