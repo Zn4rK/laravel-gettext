@@ -58,11 +58,12 @@ class GettextCommand extends Command {
     {
         $views_folder = base_path('resources/views') . DIRECTORY_SEPARATOR;
         $cache_folder = base_path($this->option('cache')) . DIRECTORY_SEPARATOR;
-        
+
+        File::cleanDirectory($cache_folder);
         $views = File::allFiles($views_folder);
 
         // Compile the files:
-        $this->compile($views, $cache_folder);
+        $compiledPathToSourcePath = $this->compile($views, $cache_folder);
 
         // Remove the blade-templates since they are in the compiled views
         $views = array_filter($views, function($view) {
@@ -177,7 +178,7 @@ class GettextCommand extends Command {
             throw new XgettextException($process->getExitCode() . $process->getExitCodeText() . PHP_EOL . $process->getCommandLine());
         }
 
-        $this->rebaseLocationsInComments($output_file);
+        $this->rebaseLocationsInComments($output_file, $compiledPathToSourcePath);
 
         // Show the user som info:
         $this->info("\tPOT file located in: $output_file\n");
@@ -226,15 +227,18 @@ class GettextCommand extends Command {
             return (substr($view, -9) === 'blade.php');
         });
 
+        $compiledPathToSourcePath = array();
+
         foreach($views as $view) {
             $viewPath = $view->getPathname();
 
-            // The blade compiler names files based on $path.
-            // We need to rebase these to ensure that they are reproducable.
-            $viewPath = $this->rebaseLocation($viewPath);
-
             $blade->compile($viewPath);
+
+            $compiledPath = realpath($blade->getCompiledPath($viewPath));
+            $compiledPathToSourcePath[$compiledPath] = $viewPath;
         }
+
+        return $compiledPathToSourcePath;
     }
 
     /**
@@ -304,8 +308,6 @@ class GettextCommand extends Command {
                 $process->run();
             
                 if($process->isSuccessful()) {
-                    $this->rebaseLocationsInComments($resultFile);
-
                     // Show the user some information
                     $this->info("\tMerged template with existing translations into $resultFile");
 
@@ -326,24 +328,32 @@ class GettextCommand extends Command {
      *
      * @param string $filename
      */
-    public function rebaseLocationsInComments($filename) {
+    public function rebaseLocationsInComments($filename, $compiledPathToSourcePath) {
         $content = file_get_contents($filename);
+        $basePath = base_path() . DIRECTORY_SEPARATOR;
 
-        $path = base_path() . DIRECTORY_SEPARATOR;
-        $pattern = '/^#: ' . preg_quote($path, '/') . '/m';
-        $content = preg_replace($pattern, '#: ', $content);
+        // Replace all full paths with relative paths.
+        $pattern = '/^#: (?P<fullPath>.*?):(?P<lineNumber>\d+)\\n/m';
+        $content = preg_replace_callback($pattern, function($matches) use ($basePath, $compiledPathToSourcePath) {
+            $fullPath = $matches['fullPath'];
+            $lineNumber = $matches['lineNumber'];
+
+            $fullPath = array_get($compiledPathToSourcePath, $fullPath, $fullPath);
+            $relativePath = substr($fullPath, strlen($basePath));
+            return '#: ' . $relativePath . ':' . $lineNumber . "\n";;
+        }, $content);
+
+        // Reorder all local paths
+        $pattern = '/^\\n((?:#: .*\n)*)/m';
+        $content = preg_replace_callback($pattern, function($matches) {
+            $lines = explode("\n", $matches[1]);
+            $lines = array_filter($lines);
+            sort($lines);
+
+            return "\n" . implode("\n", $lines) . "\n";
+        }, $content);
 
         file_put_contents($filename, $content);
-    }
-
-    /**
-     * @param string $content
-     * @return string
-     */
-    public function rebaseLocation($content) {
-        $path = base_path() . DIRECTORY_SEPARATOR;
-        $pattern = '/^' . preg_quote($path, '/') . '/';
-        return preg_replace($pattern, '', $content);
     }
 
     /**
