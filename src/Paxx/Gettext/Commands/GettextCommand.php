@@ -59,7 +59,12 @@ class GettextCommand extends Command {
         $views_folder = base_path('resources/views') . DIRECTORY_SEPARATOR;
         $cache_folder = base_path($this->option('cache')) . DIRECTORY_SEPARATOR;
 
-        File::cleanDirectory($cache_folder);
+        if (!File::exists($cache_folder)) {
+            File::makeDirectory($cache_folder);
+        } else {
+            File::cleanDirectory($cache_folder);
+        }
+
         $views = File::allFiles($views_folder);
 
         // Compile the files:
