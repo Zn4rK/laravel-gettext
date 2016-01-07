@@ -9,6 +9,7 @@ use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\Filesystem\Filesystem;
 use Config;
 use File;
+use SplFileInfo;
 
 use Paxx\Gettext\Exceptions\XgettextException;
 use Paxx\Gettext\Exceptions\NoViewsFoundException;
@@ -39,8 +40,6 @@ class GettextCommand extends Command {
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -65,14 +64,15 @@ class GettextCommand extends Command {
             File::cleanDirectory($cache_folder);
         }
 
+        /** @var SplFileInfo[] $views */
         $views = File::allFiles($views_folder);
 
         // Compile the files:
         $compiledPathToSourcePath = $this->compile($views, $cache_folder);
 
         // Remove the blade-templates since they are in the compiled views
-        $views = array_filter($views, function($view) {
-            return !(substr($view->getPathname(), -9) === 'blade.php');
+        $views = array_filter($views, function(SplFileInfo $view) {
+            return !(substr($view->getRealPath(), -9) === 'blade.php');
         });
 
         // Merge the view files with the compiled views
@@ -102,7 +102,7 @@ class GettextCommand extends Command {
         $count = count($files);
 
         if($count < 1) {
-            throw new NoViewsFoundException("No files found in $views_folder and $cache_folder [and in the additonal folder(s)]");
+            throw new NoViewsFoundException("No files found in $views_folder and $cache_folder [and in the additional folder(s)]");
         }
 
         // Show some info
@@ -166,10 +166,10 @@ class GettextCommand extends Command {
 
         // Keywords
         foreach($this->option('keywords') as $k)
-            $xgettext[] = '--keyword=$k';
+            $xgettext[] = "--keyword=$k";
 
         // Merge the view-files with the xgettext-arguments array
-        $xgettext = array_merge($xgettext, array_map(function($file) { return $file->getPathname(); }, $files));
+        $xgettext = array_merge($xgettext, array_map(function(SplFileInfo $file) { return $file->getRealPath(); }, $files));
 
         // Use the Symfony\Component\Process\ProcessBuilder and set the arguments
         $this->procBuilder->setArguments($xgettext);
@@ -219,15 +219,16 @@ class GettextCommand extends Command {
     /**
      * Method to compile blade views
      *
-     * @param array $views
+     * @param SplFileInfo[] $views
      * @param string $output
-     * @return void
+     * @return string[string]
      */
     private function compile($views, $output) {
         // New BladeCompiler
         $blade = new BladeCompiler(new Filesystem, $output);
 
         // Keep only the blade-templates
+        /** @var SplFileInfo[] $views */
         $views = array_filter($views, function($view) {
             return (substr($view, -9) === 'blade.php');
         });
@@ -235,7 +236,7 @@ class GettextCommand extends Command {
         $compiledPathToSourcePath = array();
 
         foreach($views as $view) {
-            $viewPath = $view->getPathname();
+            $viewPath = $view->getRealPath();
 
             $blade->compile($viewPath);
 
@@ -332,6 +333,7 @@ class GettextCommand extends Command {
      * path to the source files.
      *
      * @param string $filename
+     * @param string[string] $compiledPathToSourcePath
      */
     public function rebaseLocationsInComments($filename, $compiledPathToSourcePath) {
         $content = file_get_contents($filename);
@@ -345,7 +347,7 @@ class GettextCommand extends Command {
 
             $fullPath = array_get($compiledPathToSourcePath, $fullPath, $fullPath);
             $relativePath = substr($fullPath, strlen($basePath));
-            return '#: ' . $relativePath . ':' . $lineNumber . "\n";;
+            return '#: ' . $relativePath . ':' . $lineNumber . "\n";
         }, $content);
 
         // Reorder all local paths
@@ -393,7 +395,7 @@ class GettextCommand extends Command {
         return array(
             array('binary',          'b',  InputOption::VALUE_REQUIRED, 'The name of the xgettext binary', $defaults['binary']),
             array('binary_path',     'p',  InputOption::VALUE_REQUIRED, 'The path to the xgettext binary', $defaults['binary_path']),
-            array('comments',        'c',  InputOption::VALUE_REQUIRED, 'The docbloc text to scan for', $defaults['comments']),
+            array('comments',        'c',  InputOption::VALUE_REQUIRED, 'The docblock text to scan for', $defaults['comments']),
             array('force_po',        'f',  InputOption::VALUE_REQUIRED, 'Force the creation of a .pot regardless of any translation strings found (bool)', $defaults['force_po']),
             array('no_location',     'nl', InputOption::VALUE_REQUIRED, 'Do not leave a location trail in the POT-file', $defaults['no_location']),
             array('cache',           'ca', InputOption::VALUE_REQUIRED, 'The folder in which the compiled blade views will end up', $defaults['cache']),
