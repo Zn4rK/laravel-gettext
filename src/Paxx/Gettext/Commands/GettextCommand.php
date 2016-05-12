@@ -304,6 +304,7 @@ class GettextCommand extends Command {
                     $templateFile, // Template file
                     '--output-file=' . $resultFile, // And output it to the original
                     '--sort-output', // Deterministic output
+                    '--no-fuzzy-matching',
                 );
 
                 // Use the symfony process-builder and execute msgmerge
