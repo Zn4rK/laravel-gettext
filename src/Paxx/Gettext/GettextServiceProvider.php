@@ -45,8 +45,16 @@ class GettextServiceProvider extends ServiceProvider {
         // Listen for locale changes and propagate them to gettext.
         /** @var \Illuminate\Events\Dispatcher $events */
         $events = $this->app->make('events');
+
+        // Laravel 5.0-5.3
         $events->listen('locale.changed', function($locale) {
             $this->instance->setLocale($locale);
+        });
+
+        // Laravel 5.4
+        $events->listen(\Illuminate\Foundation\Events\LocaleUpdated::class, function($event) {
+            /** @var \Illuminate\Foundation\Events\LocaleUpdated $event */
+            $this->instance->setLocale($event->locale);
         });
 	}
 
@@ -61,9 +69,7 @@ class GettextServiceProvider extends ServiceProvider {
 			'config/config.php'
 		));
 
-		$this->app['gettext'] = $this->app->share(function($app) {
-        	return $this->instance;
-        });
+        $this->app->singleton('gettext', $this->instance);
 
 		$this->app->booting(function() {
 		    $loader = AliasLoader::getInstance();
@@ -76,10 +82,9 @@ class GettextServiceProvider extends ServiceProvider {
 
 	public function registerExtractCommand ()
 	{
-	    // add extract command to artisan
-	    $this->app['gettext.gettext'] = $this->app->share(function($app) {
-			return new Commands\GettextCommand();
-		});
+        $this->app->singleton('gettext.gettext', function($app) {
+            return new Commands\GettextCommand();
+        });
 
 	    $this->commands('gettext.gettext');
 	}
