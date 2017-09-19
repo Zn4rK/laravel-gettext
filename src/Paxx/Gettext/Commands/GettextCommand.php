@@ -53,7 +53,7 @@ class GettextCommand extends Command {
      *
      * @return void
      */
-    public function fire ()
+    public function handle ()
     {
         $views_folder = base_path('resources/views') . DIRECTORY_SEPARATOR;
         $cache_folder = base_path($this->option('cache')) . DIRECTORY_SEPARATOR;
