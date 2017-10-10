@@ -35,7 +35,7 @@ class GettextCommand extends Command {
      * Symonfy procbuilder
      *
      * @var null
-     */ 
+     */
     protected $procBuilder = null;
 
     /**
@@ -55,7 +55,7 @@ class GettextCommand extends Command {
      */
     public function handle ()
     {
-        $views_folder = base_path('resources/views') . DIRECTORY_SEPARATOR;
+        $views_folders = $this->getSourcePaths();
         $cache_folder = base_path($this->option('cache')) . DIRECTORY_SEPARATOR;
 
         if (!File::exists($cache_folder)) {
@@ -64,45 +64,37 @@ class GettextCommand extends Command {
             File::cleanDirectory($cache_folder);
         }
 
-        /** @var SplFileInfo[] $views */
-        $views = File::allFiles($views_folder);
+        $nonBladeViewFiles = array();
+        $compiledPathToSourcePath = array();
 
-        // Compile the files:
-        $compiledPathToSourcePath = $this->compile($views, $cache_folder);
+        foreach($views_folders as $view_folder) {
+            /** @var SplFileInfo[] $files */
+            $files = File::allFiles($view_folder);
 
-        // Remove the blade-templates since they are in the compiled views
-        $views = array_filter($views, function(SplFileInfo $view) {
-            return !(substr($view->getRealPath(), -9) === 'blade.php');
-        });
+            $bladeFiles = array_filter($files, function(SplFileInfo $file) {
+                return (substr($file->getRealPath(), -9) === 'blade.php');
+            });
+
+            // Compile the files:
+            $compiledBladeFiles = $this->compile($bladeFiles, $cache_folder);
+            $compiledPathToSourcePath = array_merge($compiledPathToSourcePath, $compiledBladeFiles);
+
+            // Remove the blade-templates since they are in the compiled views
+            $files = array_filter($files, function(SplFileInfo $file) {
+                return !(substr($file->getRealPath(), -9) === 'blade.php');
+            });
+
+            $nonBladeViewFiles = array_merge($nonBladeViewFiles, $files);
+        }
 
         // Merge the view files with the compiled views
-        $files = array_merge($views, File::allFiles($cache_folder));
-
-        // Go through the additional files
-        $additional_paths = $this->option('additional');
-
-        // Convert to array if string
-        if(!is_array($additional_paths)) {
-            $additional_paths = explode(',', $additional_paths);
-        }
-
-        if(!empty($additional_paths)) {
-
-            $additional_files = array();
-
-            foreach($additional_paths as $path) {
-                $additional_files = array_merge($additional_files, File::allFiles(base_path($path)));
-            }
-
-            // Merge the additional files with the view files
-            $files = array_merge($files, $additional_files);
-        }
+        $files = array_merge($nonBladeViewFiles, File::allFiles($cache_folder));
 
         // Count the array to make sure we actually have something to do
         $count = count($files);
 
         if($count < 1) {
-            throw new NoViewsFoundException("No files found in $views_folder and $cache_folder [and in the additional folder(s)]");
+            throw new NoViewsFoundException("No files found in any configured folder and $cache_folder [and in the additional folder(s)]");
         }
 
         // Show some info
@@ -114,19 +106,19 @@ class GettextCommand extends Command {
 
         You can read more about xgettext here: http://linux.die.net/man/1/xgettext
 
-        */
+         */
 
         // Holder for the xgettext-arguments
         $xgettext = array();
 
-        // Set the path and the binary        
+        // Set the path and the binary
         $xgettext[] = (($this->option('binary_path') == '') ? '' : $this->option('binary_path') . DIRECTORY_SEPARATOR) . $this->option('binary');
-        
+
         // Store the output-file
         $output_file = base_path(Config::get('gettext.path')) . DIRECTORY_SEPARATOR . Config::get('gettext.textdomain') . '.pot';
         $xgettext[] = '--output=' . $output_file;
 
-        // Since the language always will be PHP, we can 
+        // Since the language always will be PHP, we can
         $xgettext[] = '--language=PHP';
 
         // Deterministic output!
@@ -136,19 +128,19 @@ class GettextCommand extends Command {
         if($this->option('comments'))
             $xgettext[] = '--add-comments=' . $this->option('comments');
 
-        // Write PO file even if empty 
+        // Write PO file even if empty
         if($this->option('force_po') === true)
             $xgettext[] = '--force-po';
 
         // Do not leave references to the location where the gettext was found
-        if($this->option('no_location')) 
+        if($this->option('no_location'))
             $xgettext[] = '--no-location';
 
         // Encoding of input files
         if($this->option('from_code'))
             $xgettext[] = '--from-code=' . $this->option('from_code');
 
-        // Set copyright holder in output 
+        // Set copyright holder in output
         if($this->option('author'))
             $xgettext[] = '--copyright-holder=' . $this->option('author');
 
@@ -160,7 +152,7 @@ class GettextCommand extends Command {
         if($this->option('package_version'))
             $xgettext[] = '--package-version=' . $this->option('package_version');
 
-        // Set report address for msgid bugs 
+        // Set report address for msgid bugs
         if($this->option('email'))
             $xgettext[] = '--msgid-bugs-address=' . $this->option('email');
 
@@ -190,12 +182,30 @@ class GettextCommand extends Command {
         $this->info("\txgettext successfully executed!");
 
         // Check if we should do the msgmerge
-        if($this->option('msgmerge')) 
-           $this->merge($output_file);
+        if($this->option('msgmerge'))
+            $this->merge($output_file);
 
         // Cleanup
         if($this->option('cleanup'))
             $this->cleanup();
+    }
+
+    /**
+     * @return array|string[]
+     */
+    private function getSourcePaths() {
+        /** @var string[] $viewPaths */
+        $viewPaths = config('view.paths');
+
+        /** @var string[] $additionalPaths */
+        $additionalPaths = $this->option('additional');
+
+        // Convert to array if string
+        if(!is_array($additionalPaths)) {
+            $additionalPaths = explode(',', $additionalPaths);
+        }
+
+        return array_merge($viewPaths, $additionalPaths);
     }
 
     /**
@@ -313,7 +323,7 @@ class GettextCommand extends Command {
                 // Execute the process
                 $process = $this->procBuilder->getProcess();
                 $process->run();
-            
+
                 if($process->isSuccessful()) {
                     // Show the user some information
                     $this->info("\tMerged template with existing translations into $resultFile");
