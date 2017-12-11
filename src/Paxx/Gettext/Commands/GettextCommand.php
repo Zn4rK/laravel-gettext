@@ -160,8 +160,14 @@ class GettextCommand extends Command {
         foreach($this->option('keywords') as $k)
             $xgettext[] = "--keyword=$k";
 
-        // Merge the view-files with the xgettext-arguments array
-        $xgettext = array_merge($xgettext, array_map(function(SplFileInfo $file) { return $file->getRealPath(); }, $files));
+        // Generate a temp file and use --files-from instead of passing all
+        // files as parameters.
+        $filelistFile = tmpfile();
+        $filelistMeta = stream_get_meta_data($filelistFile);
+        $filelistFilename = $filelistMeta['uri'];
+        $filePaths = array_map(function(SplFileInfo $file) { return $file->getRealPath(); }, $files);
+        fwrite($filelistFile, implode(PHP_EOL, $filePaths));
+        $xgettext[] = "--files-from=" . $filelistFilename;
 
         // Use the Symfony\Component\Process\ProcessBuilder and set the arguments
         $this->procBuilder->setArguments($xgettext);
