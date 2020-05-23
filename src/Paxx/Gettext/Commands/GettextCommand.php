@@ -4,7 +4,7 @@ namespace Paxx\Gettext\Commands;
 
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Process\ProcessBuilder;
+use Symfony\Component\Process\Process;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\Filesystem\Filesystem;
 use Config;
@@ -32,20 +32,11 @@ class GettextCommand extends Command {
     protected $description = 'Compiles blade-views, extracts and merges gettext translations and creates a folder structure for localisation';
 
     /**
-     * Symonfy procbuilder
-     *
-     * @var null
-     */
-    protected $procBuilder = null;
-
-    /**
      * Create a new command instance.
      */
     public function __construct()
     {
         parent::__construct();
-
-        $this->procBuilder = new ProcessBuilder;
     }
 
     /**
@@ -169,11 +160,8 @@ class GettextCommand extends Command {
         fwrite($filelistFile, implode(PHP_EOL, $filePaths));
         $xgettext[] = "--files-from=" . $filelistFilename;
 
-        // Use the Symfony\Component\Process\ProcessBuilder and set the arguments
-        $this->procBuilder->setArguments($xgettext);
-
         // Execute the process
-        $process = $this->procBuilder->getProcess();
+        $process = new Process($xgettext);
         $process->run();
 
         // If not successful throw an error:
