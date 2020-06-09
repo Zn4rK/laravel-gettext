@@ -311,11 +311,7 @@ class GettextCommand extends Command {
                     '--no-fuzzy-matching',
                 );
 
-                // Use the symfony process-builder and execute msgmerge
-                $this->procBuilder->setArguments(array_merge($msgmerge, $args));
-
-                // Execute the process
-                $process = $this->procBuilder->getProcess();
+                $process = new Process(array_merge($msgmerge, $args));
                 $process->run();
 
                 if($process->isSuccessful()) {
